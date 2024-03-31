@@ -1,0 +1,27 @@
+{
+    "name": "Poke_PF",
+    "version": "1.0",
+    "description": "Pokemon Get",
+    "manifest_version": 2,
+    "permissions": ["tabs"],
+    "browser_action": {
+      "default_popup": "popup.html",
+      "default_icon": {
+        "16": "images/icon16.png"
+      }
+    },
+    "icons": {
+      "16": "images/icon16.png"
+    },
+    "background": {
+      "scripts": ["background.js"],
+      "persistent": false
+    },
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"],
+        "js": ["content.js"]
+      }
+    ]
+  }
+  
