@@ -4,14 +4,15 @@
     "description": "Pokemon Get",
     "manifest_version": 2,
     "permissions": ["tabs"],
+    "icons": {
+      "16": "images/pokeball.png",
+      "48": "images/greatball.png",
+      "128": "images/ultraball.png"
+    },
+
     "browser_action": {
       "default_popup": "popup.html",
-      "default_icon": {
-        "16": "images/icon16.png"
-      }
-    },
-    "icons": {
-      "16": "images/icon16.png"
+      "default_icon": "images/pokeball.png"
     },
     "background": {
       "scripts": ["background.js"],
@@ -20,7 +21,8 @@
     "content_scripts": [
       {
         "matches": ["<all_urls>"],
-        "js": ["content.js"]
+        "js": ["content.js"],
+        "css": ["style.css"]
       }
     ]
   }
