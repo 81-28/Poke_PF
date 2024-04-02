@@ -1,8 +1,8 @@
 {
     "name": "Poke_PF",
-    "version": "1.0",
+    "version": "1.0.0",
     "description": "Pokemon Get",
-    "manifest_version": 2,
+    "manifest_version": 3,
     "permissions": ["tabs"],
     "icons": {
       "16": "images/pokeball.png",
@@ -10,13 +10,9 @@
       "128": "images/ultraball.png"
     },
 
-    "browser_action": {
+    "action": {
       "default_popup": "popup.html",
       "default_icon": "images/pokeball.png"
-    },
-    "background": {
-      "scripts": ["background.js"],
-      "persistent": false
     },
     "content_scripts": [
       {
