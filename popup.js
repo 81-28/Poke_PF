@@ -1,3 +1,5 @@
+
+
 const apiUrl = 'https://pokeapi.co/api/v2/pokemon/';
 
 const pokeNum = document.getElementById('num');
@@ -62,3 +64,4 @@ numChange();
 pokeNum.addEventListener('change', () => {
     numChange();
 });
+

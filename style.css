@@ -1,8 +1,41 @@
 :root{
     --backgroundColor: #afafaf;
+    --white: #efefef;
+    --pokeblack: #000000;
 }
 
 #poke_PF{
     width: 10em;
     height: 30em;
+}
+
+
+#poke-right-top{
+    position: fixed;
+    right: 0;
+    top: 0;
+    margin: 2em;
+    width: 24em;
+    height: 20em;
+    z-index: 10000;
+    color: var(--pokeblack);
+    border-radius: 1em;
+    border: 1px solid var(--pokeblack);
+    background-color: var(--white);
+    padding: 1em;
+}
+#sizeButton{
+    position: absolute;
+    right: 0.4em;
+    top: 0.4em;
+    width: 1.2em;
+    height: 1.2em;
+    border-radius: 50%;
+    background-color: #008844;
+}
+#rtContent{
+    background-color: #ff0000;
+}
+.poke-highlight{
+    color: #ff0000;
 }
