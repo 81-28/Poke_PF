@@ -2,6 +2,32 @@
 
 console.log('extention');
 
+// main,game,result,get,dex
+let state = 'main';
+function changeState(s = 'main'){
+    state = s;
+    const main = document.getElementById("pokePF_main");
+    const game = document.getElementById("pokePF_game");
+    const result = document.getElementById("pokePF_result");
+    const get = document.getElementById("pokePF_get");
+    const dex = document.getElementById("pokePF_dex");
+    main.style.display = 'none';
+    game.style.display = 'none';
+    result.style.display = 'none';
+    get.style.display = 'none';
+    dex.style.display = 'none';
+    document.getElementById(`pokePF_${state}`).style.display = 'block';
+}
+
+let gameStartTime = 0;
+const limitSeconds = 30;
+let remainSeconds = limitSeconds;
+// 現在のunixTime
+function currentUnixTime() {
+    const currentDateTime = new Date();
+    const unixTime = Date.parse(currentDateTime) / 1000;
+    return unixTime;
+}
 function escapeHTML(text){
     const box = document.createElement('p');
     box.textContent = text;
@@ -17,6 +43,9 @@ function findMin(numbers){
 
 const apiUrl = 'https://pokeapi.co/api/v2/pokemon/';
 const maxPoke = 1025;
+let getPoke = {};
+getPoke[1] = 1;
+console.log(getPoke);
 // 引数の番号のポケモンのデータを取得
 async function fetchPoke(pokeId){
     // console.log(pokeId);
@@ -43,27 +72,36 @@ async function fetchPoke(pokeId){
 }
 // 選択されているポケモンを表示
 async function displayPoke(n) {
+    console.log(n, 'displayPoke')
     const pokeId = n;
     const spriteValue = "front_default";
-    const pokeNumElement = document.getElementById('pokeNum');
-    const pokeNameElement = document.getElementById('pokeName');
-    const pokeImgElement = document.getElementById('pokeImg');
+    const pokeNameElement = document.getElementById(`pokeName_${state}`);
+    const pokeImgElement = document.getElementById(`pokeImg_${state}`);
     try {
         const data = await fetchPoke(pokeId);
-        console.log(data);
+        // console.log(data);
 
         if (data) {
             const pokeName = data.name;
             const pokeImg = data.sprites[spriteValue];
 
-            pokeNumElement.textContent = pokeId;
             pokeNameElement.textContent = `Name: ${pokeName}`;
             pokeImgElement.src = pokeImg;
-            console.log(pokeImgElement);
+            // console.log(pokeImgElement);
         }
     } catch (error) {
         console.log('データの表示中にエラーが発生しました', error);
     }
+}
+function randamPokeIndex(){
+    const obj = getPoke;
+    // 1以上の要素のindexを取得する
+    const validIndices = Object.keys(obj).filter(key => obj[key] >= 1).map(Number);
+    console.log(validIndices);
+    // ランダムにindexを選択する
+    const randomKey = Math.floor(Math.random() * validIndices.length);
+    // 選択された要素
+    return validIndices[randomKey];
 }
 
 
@@ -175,35 +213,205 @@ async function convertNumToPokeNum(number){
 }
 
 
-
+let clickedNum = 0;
 async function clickNumber(number){
-    const rtContent = document.getElementById("rtContent");
-    const conNum = await convertNumToPokeNum(number);
-    console.log(conNum);
-    if (conNum) {
-        // 約数にポケモンが存在するので、エンカウントチャンスのある素因数分解をする
-        displayPoke(conNum);
-        rtContent.style.backgroundColor = '#ff0000';
-    } else {
-        // ここは、約数にポケモンが存在しないとき
-        // 2以上なら素因数分解させる(0,1の時はどうする？)
-        rtContent.style.backgroundColor = '#0000ff';
+    clickedNum = number;
+    if (state == 'main') {
+        const conNum = await convertNumToPokeNum(clickedNum);
+        console.log(conNum);
+        if (conNum) {
+            // 約数にポケモンが存在するので、エンカウントチャンスのある素因数分解をする
+            gameStartTime = currentUnixTime();
+            const gameNumElement = document.getElementById('gameNum');
+            gameNumElement.textContent = number;
+
+            changeState('game');
+            const timer = document.getElementById("pokePF_timer");
+            timer.value = limitSeconds;
+            setInterval(() => {
+                remainSeconds = limitSeconds + gameStartTime - currentUnixTime();
+                timer.value = remainSeconds;
+                if (remainSeconds <= 0 && state == 'game') {
+                    // gameover
+                    gameover(0);
+                }
+            }, 1000);
+        } else {
+            console.log('sorry!');
+        }
     }
 }
+// let canEncount = true;
+// function existPoke(is = true){
+//     const timer_3 = document.getElementById("pokePF_timer_3");
+//     if (is) {
+//         canEncount = true;
+//         timer_3.style.backgroundColor = '#afffaf';
+//     } else {
+//         canEncount = true;
+//         timer_3.style.backgroundColor = '#afafff';
+//     }
+// }
+
 async function sendNum(){
     // 入力を数値として扱う
     const number = Number(document.getElementById("pokePrime").value);
-    const pokeNumElement = document.getElementById('pokeNum');
-    const factors = await primeFactors(pokeNumElement.textContent);
+    const gameNumElement = document.getElementById('gameNum');
+    const factors = await primeFactors(gameNumElement.textContent);
     // console.log(factors);
     // console.log(factors.includes(number));
     if (isPrime(number) && factors.includes(number)) {
-        pokeNumElement.textContent /= number;
-        displayPoke(document.getElementById('pokeNum').textContent);
+        gameNumElement.textContent /= number;
+    }
+    if (state == 'game' && gameNumElement.textContent == 1) {
+        // clear
+        gameover(remainSeconds);
     }
 }
 
+function gameover(seconds){
+    const resultTextElement = document.getElementById("resultText");
+    const resultButtonElement = document.getElementById("resultButton");
+    const resultGetButtonElement = document.getElementById("resultGetButton");
+    resultButtonElement.style.display = 'block';
+    resultGetButtonElement.style.display = 'none';
+    const gotPoke = document.getElementById("pokePF_result_gotPoke");
+    gotPoke.style.display = 'none';
+    if (0 < seconds) {
+        resultTextElement.textContent = 'Clear!';
+        if (limitSeconds / 2 < seconds) {
+            if (limitSeconds * 5 / 6 < seconds) {
+                encountPoint += 4;
+            } else if (limitSeconds * 4 / 6 < seconds) {
+                encountPoint += 2;
+            } else {
+                encountPoint += 1;
+            }
+            pointDisplay('encount');
+            if (encountMax <= encountPoint) {
+                resultButtonElement.style.display = 'none';
+                resultGetButtonElement.style.display = 'block';
+            }
+        } else {
+            if (limitSeconds * 2 / 6 < seconds) {
+                ballPoint += 4;
+            } else if (limitSeconds * 1 / 6 < seconds) {
+                ballPoint += 2;
+            } else {
+                ballPoint += 1;
+            }
+            pointDisplay('ball');
+        }
+    } else {
+        resultTextElement.textContent = 'gameover';
+    }
+    changeState('result');
+}
+function exitResult(){
+    console.log('exitResult');
+    if (ballMax <= ballPoint) {
+        ballGrade ++;
+        if (ballGrade > 3) {
+            ballGrade = 3;
+            ballPoint = ballMax-1;
+        }else{
+            ballPoint -= 8;
+        }
+    }
+    displayNowBall();
+    pointDisplay('ball');
+    changeState('main');
+    displayPoke(randamPokeIndex());
+}
+function displayNowBall(){
+    const nowBall = document.getElementById("pokePF_nowBall");
+    switch (ballGrade) {
+        case 0:
+            nowBall.textContent = 'pokeball';
+            break;
+        case 1:
+            nowBall.textContent = 'greatball';
+            break;
+        case 2:
+            nowBall.textContent = 'ultraball';
+            break;
+        case 3:
+            nowBall.textContent = 'masterball';
+            break;
+        default:
+            nowBall.textContent = 'pokeball';
+            break;
+    }
+}
 
+const encountMax = 8;
+let encountPoint = 0;
+const ballMax = 8;
+let ballPoint = 0;
+let ballGrade = 0;
+function pointDisplay(bar = 'ball'){
+    if (bar == 'ball') {
+        for (let i = 0; i < ballMax; i++) {
+            if (i < ballPoint) {
+                document.getElementById(`pokePF_ball_${i}`).style.backgroundColor = '#7f7fff'
+            } else {
+                document.getElementById(`pokePF_ball_${i}`).style.backgroundColor = 'var(--pokeBackgroundColor)'
+            }
+        }
+    } else {
+        for (let i = 0; i < encountMax; i++) {
+            if (i < encountPoint) {
+                document.getElementById(`pokePF_encount_${i}`).style.backgroundColor = '#5fff5f'
+            } else {
+                document.getElementById(`pokePF_encount_${i}`).style.backgroundColor = 'var(--pokeBackgroundColor)'
+            }
+        }
+    }
+}
+
+let encountPokeNum = 1;
+async function getChance(){
+    console.log('getChance');
+    encountPoint = 0;
+    pointDisplay('encount');
+    changeState('get');
+
+    const conNum = await convertNumToPokeNum(clickedNum);
+    encountPokeNum = conNum;
+    // console.log(conNum);
+    if (conNum) {
+        // 約数のポケモンを表示する
+        displayPoke(conNum);
+    }
+}
+function throwBall(){
+    let isGot = false;
+    const gotPoke = document.getElementById("pokePF_result_gotPoke");
+    const resultTextElement = document.getElementById("resultText");
+    const resultButtonElement = document.getElementById("resultButton");
+    const resultGetButtonElement = document.getElementById("resultGetButton");
+    resultButtonElement.style.display = 'block';
+    resultGetButtonElement.style.display = 'none';
+    if (state == 'get') {
+        if (getRandomInt(3 - ballGrade) == 0) {
+            isGot = true;
+            getPoke[encountPokeNum] = (getPoke[encountPokeNum] || 0) + 1;
+            console.log(getPoke);
+            resultTextElement.textContent = 'Get!!!';
+            gotPoke.style.display = 'block';
+        } else {
+            resultTextElement.textContent = 'Get failed';
+            gotPoke.style.display = 'none';
+        }
+        changeState('result');
+        ballGrade = 0;
+        displayNowBall();
+        if (isGot) {   
+            displayPoke(encountPokeNum);
+        }
+    }
+
+}
 
 
 let small = false;
@@ -212,10 +420,11 @@ function windowSize(action = 'switch'){
     const elememt = document.getElementById("poke-right-top");
     const content = document.getElementById("rtContent");
     if (action == 'open' || (action == 'switch' && small)) {
-        elememt.style.width = '24em';
-        elememt.style.height = '20em';
+        elememt.style.width = '10em';
+        elememt.style.height = '15em';
         content.style.display = 'block';
         small = false;
+        displayPoke(randamPokeIndex());
     } else if (action == 'close' || (action == 'switch' && !small)) {
         elememt.style.width = '0';
         elememt.style.height = '0';
@@ -224,18 +433,73 @@ function windowSize(action = 'switch'){
     }
 }
 
+// main,game,result,get,dex
 const addDiv = `
     <div id="poke-right-top">
         <div id="sizeButton"></div>
         <div id="rtContent">
-            Hello World!
             <div>
-                <p id="pokeNum">1</p>
-                <p id="pokeName">Name</p>
-                <img id="pokeImg" src="" alt="Sprite">
-                <div>
+                <div id="pokePF_encounts">
+                    <div id="pokePF_encount_0" class="pokePF_encount_box"></div>
+                    <div id="pokePF_encount_1" class="pokePF_encount_box"></div>
+                    <div id="pokePF_encount_2" class="pokePF_encount_box"></div>
+                    <div id="pokePF_encount_3" class="pokePF_encount_box"></div>
+                    <div id="pokePF_encount_4" class="pokePF_encount_box"></div>
+                    <div id="pokePF_encount_5" class="pokePF_encount_box"></div>
+                    <div id="pokePF_encount_6" class="pokePF_encount_box"></div>
+                    <div id="pokePF_encount_7" class="pokePF_encount_box"></div>
+                </div>
+                <div id="pokePF_balls">
+                    <div id="pokePF_ball_0" class="pokePF_ball_box"></div>
+                    <div id="pokePF_ball_1" class="pokePF_ball_box"></div>
+                    <div id="pokePF_ball_2" class="pokePF_ball_box"></div>
+                    <div id="pokePF_ball_3" class="pokePF_ball_box"></div>
+                    <div id="pokePF_ball_4" class="pokePF_ball_box"></div>
+                    <div id="pokePF_ball_5" class="pokePF_ball_box"></div>
+                    <div id="pokePF_ball_6" class="pokePF_ball_box"></div>
+                    <div id="pokePF_ball_7" class="pokePF_ball_box"></div>
+                </div>
+            </div>
+            <div id="pokePF_nowBall">pokeball</div>
+            <br>
+            <div id="pokePF_display">
+                <div id="pokePF_main">
+                    <p id="pokeName_notice">Click Number!<p>
+                    <p id="pokeName_main">Name</p>
+                    <img id="pokeImg_main" src="" alt="Sprite">
+                </div>
+                <div id="pokePF_game">
+                    <progress id="pokePF_timer" value="${limitSeconds}" max="${limitSeconds}"></progress>
+                    <div id="pokePF_timers">
+                        <div id="pokePF_timer_0" class="pokePF_timer_box"></div>
+                        <div id="pokePF_timer_1" class="pokePF_timer_box"></div>
+                        <div id="pokePF_timer_2" class="pokePF_timer_box"></div>
+                        <div id="pokePF_timer_3" class="pokePF_timer_box"></div>
+                        <div id="pokePF_timer_4" class="pokePF_timer_box"></div>
+                        <div id="pokePF_timer_5" class="pokePF_timer_box"></div>
+                    </div>
+                    <p id="gameNum">1</p>
                     <input type="number" id="pokePrime" min="2" value="">
-                    <button id="sendButton">Go</button>
+                    <button id="sendButton">Wall</button>
+                </div>
+                <div id="pokePF_result">
+                    <p id="resultText">clear</p>
+                    <div id="pokePF_result_gotPoke">
+                        <p id="pokeName_result">Name</p>
+                        <img id="pokeImg_result" src="" alt="Sprite">
+                    </div>
+                    <button id="resultButton">Exit</button>
+                    <button id="resultGetButton">Get</button>
+                </div>
+                <div id="pokePF_get">
+                    <p id="pokeName_get">Name</p>
+                    <img id="pokeImg_get" src="" alt="Sprite">
+                    <div id="pokePF_getBall"><img src="" alt="ball"></div>
+                    <button id="throwButton">Throw</button>
+                </div>
+                <div id="pokePF_dex">
+                    <p id="pokeName_dex">Name</p>
+                    <img id="pokeImg_dex" src="" alt="Sprite">
                 </div>
             </div>
         </div>
@@ -270,5 +534,19 @@ function markNumbers() {
     });
     document.querySelector('#sizeButton').addEventListener('click', () => windowSize());
     document.querySelector('#sendButton').addEventListener('click', () => sendNum());
+    document.querySelector('#pokePrime').addEventListener('keypress', function(event) {
+        // 入力欄でEnterを押すと関数を実行
+        if (event.key === "Enter") {
+            sendNum();
+        }
+    });
+    document.querySelector('#throwButton').addEventListener('click', () => throwBall());
+    document.querySelector('#resultButton').addEventListener('click', () => exitResult());
+    document.querySelector('#resultGetButton').addEventListener('click', () => getChance());
+    pointDisplay('ball');
+    pointDisplay('encount');
+    displayNowBall();
 }
 markNumbers();
+displayPoke(randamPokeIndex());
+changeState();

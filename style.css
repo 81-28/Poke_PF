@@ -1,6 +1,6 @@
 :root{
-    --backgroundColor: #afafaf;
-    --white: #efefef;
+    --pokeBackgroundColor: #efefef;
+    --pokewhite: #efefef;
     --pokeblack: #000000;
 }
 
@@ -10,18 +10,23 @@
 }
 
 
+.poke-highlight{
+    color: #ff0000;
+}
+
+
 #poke-right-top{
     position: fixed;
     right: 0;
     top: 0;
     margin: 2em;
-    width: 24em;
-    height: 20em;
+    width: 10em;
+    height: 15em;
     z-index: 10000;
     color: var(--pokeblack);
     border-radius: 1em;
     border: 1px solid var(--pokeblack);
-    background-color: var(--white);
+    background-color: var(--pokeBackgroundColor);
     padding: 1em;
 }
 #sizeButton{
@@ -31,11 +36,101 @@
     width: 1.2em;
     height: 1.2em;
     border-radius: 50%;
-    background-color: #008844;
+    background-color: #8fcf1f;
 }
-#rtContent{
+/* #rtContent{
     background-color: #ff0000;
+} */
+/* main,game,result,get,dex */
+#pokePF_encounts{
+    width: 10em;
+    height: 0.5em;
+    z-index: 10;
+    display: flex;
 }
-.poke-highlight{
-    color: #ff0000;
+.pokePF_encount_box{
+    width: 1em;
+    border: 1px solid var(--pokeblack);
+    background-color: #5fff5f;
+}
+#pokePF_balls{
+    width: 10em;
+    height: 0.5em;
+    z-index: 10;
+    display: flex;
+}
+.pokePF_ball_box{
+    width: 1em;
+    border: 1px solid var(--pokeblack);
+    background-color: #7f7fff;
+}
+#pokePF_display{
+    width: 100%;
+}
+#pokePF_main{
+    display: block;
+}
+#pokeName_notice{
+    color: #ff3f00;
+}
+#pokePF_game{
+    /* display: block; */
+    display: none;
+}
+#pokePrime{
+    width: 4em;
+}
+#pokePF_timer{
+    width: 6em;
+}
+#pokePF_timers{
+    width: 6em;
+    height: 0.5em;
+    z-index: 10;
+    display: flex;
+}
+.pokePF_timer_box{
+    width: 1em;
+    border: 1px solid var(--pokeblack);
+}
+#pokePF_timer_0{
+    background-color: #afafff;
+}
+#pokePF_timer_1{
+    background-color: #7f7fff;
+}
+#pokePF_timer_2{
+    background-color: #4f4fff;
+}
+#pokePF_timer_3{
+    background-color: #afffaf;
+}
+#pokePF_timer_4{
+    background-color: #5fff5f;
+}
+#pokePF_timer_5{
+    background-color: #0fff0f;
+}
+#pokePF_result{
+    /* display: block; */
+    display: none;
+}
+#resultGetButton{
+    background-color: #ff8f8f;
+}
+#pokePF_get{
+    /* display: block; */
+    display: none;
+}
+#throwButton{
+    background-color: #8fff8f;
+}
+#pokePF_getBall{
+    width: 2em;
+    height: 2em;
+    /* background-size: contain; */
+}
+#pokePF_dex{
+    /* display: block; */
+    display: none;
 }
