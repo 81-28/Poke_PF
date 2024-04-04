@@ -41,7 +41,8 @@ function findMin(numbers){
     return Math.min(...numbers);
 }
 
-const apiUrl = 'https://pokeapi.co/api/v2/pokemon/';
+
+const apiUrl = 'https://pokeapi.co/api/v2/';
 const maxPoke = 1025;
 let getPoke = {};
 getPoke[1] = 1;
@@ -50,7 +51,7 @@ console.log(getPoke);
 async function fetchPoke(pokeId){
     // console.log(pokeId);
 
-    const url = `${apiUrl}${pokeId}`;
+    const url = `${apiUrl}pokemon/${pokeId}`;
     // console.log(url);
     try {
         const response = await fetch(url, {
@@ -70,6 +71,30 @@ async function fetchPoke(pokeId){
         throw error;
     }
 }
+// 引数の番号のポケモンの名前を取得
+async function fetchPokeName(pokeId){
+
+    const url = `${apiUrl}pokemon-species/${pokeId}`;
+    console.log(url);
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('ネットワークエラーまたはリクエストに問題があります');
+        }
+        const data = await response.json();
+        console.log(data);
+        return data.names.find(nameData => nameData.language.name === 'ja').name;
+    } catch (error) {
+        console.log('データを取得できませんでした', error);
+        throw error;
+    }
+}
 // 選択されているポケモンを表示
 async function displayPoke(n) {
     console.log(n, 'displayPoke')
@@ -79,13 +104,13 @@ async function displayPoke(n) {
     const pokeImgElement = document.getElementById(`pokeImg_${state}`);
     try {
         const data = await fetchPoke(pokeId);
+        const pokeName = await fetchPokeName(pokeId);
         // console.log(data);
 
         if (data) {
-            const pokeName = data.name;
             const pokeImg = data.sprites[spriteValue];
 
-            pokeNameElement.textContent = `Name: ${pokeName}`;
+            pokeNameElement.textContent = pokeName;
             pokeImgElement.src = pokeImg;
             // console.log(pokeImgElement);
         }
@@ -105,6 +130,38 @@ function randamPokeIndex(){
 }
 
 
+async function pokeHTML(pokeId){
+    const spriteValue = "front_default";
+    try {
+        const data = await fetchPoke(pokeId);
+        const pokeName = await fetchPokeName(pokeId);
+
+        if (data) {
+            return `
+                <p id="pokeName">${pokeName}</p>
+                <img id="pokeImg" src="${data.sprites[spriteValue]}" alt="Sprite">
+            `;
+        }
+    } catch (error) {
+        console.log('データの表示中にエラーが発生しました', error);
+        return '';
+    }
+}
+
+// 選択されているポケモンを表示
+async function displayPokeDex() {
+    const pokeDexElement = document.getElementById("pokeDex");
+    pokeDexElement.innerHTML = '';
+    const getPokeNums  = Object.keys(getPoke).filter(key => getPoke[key] >= 1).map(Number);
+    console.log(getPokeNums);
+    for (const pokeId of getPokeNums) {
+        console.log(pokeId);
+        const newDiv = document.createElement('div');
+        newDiv.innerHTML = await pokeHTML(pokeId);
+        pokeDexElement.appendChild(newDiv);
+    }
+    changeState('dex')
+}
 
 // 素数判定する関数
 function isPrime(n) {
@@ -238,6 +295,9 @@ async function clickNumber(number){
             }, 1000);
         } else {
             console.log('sorry!');
+            gameover(0);
+            const resultTextElement = document.getElementById("resultText");
+            resultTextElement.textContent = 'Sorry! Not prepared';
         }
     }
 }
@@ -467,6 +527,7 @@ const addDiv = `
                     <p id="pokeName_notice">Click Number!<p>
                     <p id="pokeName_main">Name</p>
                     <img id="pokeImg_main" src="" alt="Sprite">
+                    <button id="mainButton">PokeDex</button>
                 </div>
                 <div id="pokePF_game">
                     <progress id="pokePF_timer" value="${limitSeconds}" max="${limitSeconds}"></progress>
@@ -498,8 +559,8 @@ const addDiv = `
                     <button id="throwButton">Throw</button>
                 </div>
                 <div id="pokePF_dex">
-                    <p id="pokeName_dex">Name</p>
-                    <img id="pokeImg_dex" src="" alt="Sprite">
+                    <dev id="pokeDex"></dev>
+                    <button id="dexButton">Exit</button>
                 </div>
             </div>
         </div>
@@ -533,6 +594,7 @@ function markNumbers() {
         });
     });
     document.querySelector('#sizeButton').addEventListener('click', () => windowSize());
+    document.querySelector('#mainButton').addEventListener('click', () => displayPokeDex());
     document.querySelector('#sendButton').addEventListener('click', () => sendNum());
     document.querySelector('#pokePrime').addEventListener('keypress', function(event) {
         // 入力欄でEnterを押すと関数を実行
@@ -543,6 +605,7 @@ function markNumbers() {
     document.querySelector('#throwButton').addEventListener('click', () => throwBall());
     document.querySelector('#resultButton').addEventListener('click', () => exitResult());
     document.querySelector('#resultGetButton').addEventListener('click', () => getChance());
+    document.querySelector('#dexButton').addEventListener('click', () => exitResult());
     pointDisplay('ball');
     pointDisplay('encount');
     displayNowBall();
