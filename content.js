@@ -66,8 +66,13 @@ if (debugMode) {
     getPoke[3] = 1;
 }
 function savePokeData(){
-    console.log('Save Data:', getPoke);
-    sessionStorage.setItem('myPokeData', JSON.stringify(getPoke));
+    // console.log('Save Data:', getPoke);
+    // sessionStorage.setItem('myPokeData', JSON.stringify(getPoke));
+    // 
+    // chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+    //     chrome.tabs.sendMessage(tabs[0].id, { action: "sendPokeData", data: getPoke });
+    // });
+    // chrome.runtime.sendMessage({ action: "sendPokeData", data: getPoke });
 }
 console.log(getPoke, 'GotPokeList');
 // 引数の番号のポケモンのデータを取得

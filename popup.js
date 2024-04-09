@@ -11,13 +11,21 @@ getPoke[7] = 1;
 getPoke[8] = 1;
 getPoke[9] = 1;
 
-function loadPokeData(){
-    const loadData = JSON.parse(sessionStorage.getItem('myPokeData'));
-    if (loadData) {
-        getPoke = loadData;
-    }
+async function loadPokeData(){
+    // const loadData = JSON.parse(sessionStorage.getItem('myPokeData'));
+    // if (loadData) {
+    //     getPoke = loadData;
+    // }
+    // 
+    // chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    //     if (message.action === "sendPokeData") {
+    //         const receivedData = message.data;
+    //         if (receivedData) {
+    //             getPoke = receivedData;
+    //         }
+    //     }
+    // });
 }
-loadPokeData();
 
 const apiUrl = 'https://pokeapi.co/api/v2/';
 
@@ -92,13 +100,16 @@ async function pokeHTML(pokeId){
 
 // 選択されているポケモンを表示
 async function displayPoke() {
-    const pokeDexElement = document.getElementById("pokeDex");
+    await loadPokeData();
+    const pokeDexElement = document.getElementById("pokeDex_pop");
+    pokeDexElement.innerHTML = '';
+
     const getPokeNums  = Object.keys(getPoke).filter(key => getPoke[key] >= 1).map(Number);
-    
     for (const pokeId of getPokeNums) {
         const newDiv = document.createElement('div');
         newDiv.innerHTML = await pokeHTML(pokeId);
         pokeDexElement.appendChild(newDiv);
     }
 }
+document.querySelector('#reloadButton').addEventListener('click', () => displayPoke());
 displayPoke();

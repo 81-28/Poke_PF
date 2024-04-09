@@ -18,7 +18,11 @@
       {
         "matches": ["<all_urls>"],
         "js": ["content.js"],
-        "css": ["style.css"]
+        "css": ["style.css"],
+        "exclude_matches": [
+          "*://www.google.com/*",
+          "*://chat.openai.com/*"
+        ]
       }
     ],
     "background": {

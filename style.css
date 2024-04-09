@@ -147,3 +147,15 @@
 #pokeDex div p{
     font-size: 0.8em;
 }
+#pokeDex_pop{
+    overflow-y: auto;
+}
+#pokeDex_pop div{
+    margin-bottom: 1px;
+    border-radius: 1em;
+    border: 1px solid var(--pokeblack);
+    text-align: center;
+}
+#pokeDex_pop div p{
+    font-size: 0.8em;
+}
