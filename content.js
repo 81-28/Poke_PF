@@ -1,6 +1,21 @@
 // 
-
 console.log('extention');
+
+let debugMode = false;
+let defaultBall = 0;
+let encountPointBase = 0;
+function switchDebugMode(){
+    debugMode = !debugMode;
+    if (debugMode) {
+        defaultBall = 3;
+        encountPointBase = 6;
+    } else {
+        defaultBall = 0;
+        encountPointBase = 0;
+    }
+}
+switchDebugMode();
+
 
 // main,game,result,get,dex
 let state = 'main';
@@ -46,7 +61,15 @@ const apiUrl = 'https://pokeapi.co/api/v2/';
 const maxPoke = 1025;
 let getPoke = {};
 getPoke[1] = 1;
-console.log(getPoke);
+if (debugMode) {
+    getPoke[2] = 1;
+    getPoke[3] = 1;
+}
+function savePokeData(){
+    console.log('Save Data:', getPoke);
+    sessionStorage.setItem('myPokeData', JSON.stringify(getPoke));
+}
+console.log(getPoke, 'GotPokeList');
 // 引数の番号のポケモンのデータを取得
 async function fetchPoke(pokeId){
     // console.log(pokeId);
@@ -75,7 +98,7 @@ async function fetchPoke(pokeId){
 async function fetchPokeName(pokeId){
 
     const url = `${apiUrl}pokemon-species/${pokeId}`;
-    console.log(url);
+    // console.log(url, 'URL');
     try {
         const response = await fetch(url, {
             method: 'GET',
@@ -88,7 +111,7 @@ async function fetchPokeName(pokeId){
             throw new Error('ネットワークエラーまたはリクエストに問題があります');
         }
         const data = await response.json();
-        console.log(data);
+        // console.log(data);
         return data.names.find(nameData => nameData.language.name === 'ja').name;
     } catch (error) {
         console.log('データを取得できませんでした', error);
@@ -112,7 +135,7 @@ async function displayPoke(n) {
 
             pokeNameElement.textContent = pokeName;
             pokeImgElement.src = pokeImg;
-            // console.log(pokeImgElement);
+            // console.log(pokeImg);
         }
     } catch (error) {
         console.log('データの表示中にエラーが発生しました', error);
@@ -122,7 +145,7 @@ function randamPokeIndex(){
     const obj = getPoke;
     // 1以上の要素のindexを取得する
     const validIndices = Object.keys(obj).filter(key => obj[key] >= 1).map(Number);
-    console.log(validIndices);
+    console.log(validIndices, 'GotPokeNums');
     // ランダムにindexを選択する
     const randomKey = Math.floor(Math.random() * validIndices.length);
     // 選択された要素
@@ -138,7 +161,7 @@ async function pokeHTML(pokeId){
 
         if (data) {
             return `
-                <p id="pokeName">${pokeName}</p>
+                <p id="pokeName">${pokeId}. ${pokeName} x${getPoke[pokeId]}</p>
                 <img id="pokeImg" src="${data.sprites[spriteValue]}" alt="Sprite">
             `;
         }
@@ -153,14 +176,14 @@ async function displayPokeDex() {
     const pokeDexElement = document.getElementById("pokeDex");
     pokeDexElement.innerHTML = '';
     const getPokeNums  = Object.keys(getPoke).filter(key => getPoke[key] >= 1).map(Number);
-    console.log(getPokeNums);
+    console.log(getPokeNums, 'PokeNums');
+    changeState('dex')
     for (const pokeId of getPokeNums) {
-        console.log(pokeId);
+        console.log(pokeId, 'PokeId');
         const newDiv = document.createElement('div');
         newDiv.innerHTML = await pokeHTML(pokeId);
         pokeDexElement.appendChild(newDiv);
     }
-    changeState('dex')
 }
 
 // 素数判定する関数
@@ -241,7 +264,6 @@ function generateRandomNumber(factors) {
                 const factor = factors[i];
                 product[factor] = (product[factor] || 0) + 1;
             }
-            // console.log(product);
             for (const factor in product) {
                 if (product.hasOwnProperty(factor)) {
                     const exponent = getRandomInt(product[factor]);
@@ -257,7 +279,7 @@ function generateRandomNumber(factors) {
 // 引数の約数(ポケモンNo.)を返す。存在しなければ0を返す
 async function convertNumToPokeNum(number){
     const factors = await primeFactors(number);
-    console.log(factors);
+    console.log(factors, 'factors');
     if (findMin(factors) < 2 || maxPoke < findMin(factors)) {
         return 0;
     } else {
@@ -275,7 +297,7 @@ async function clickNumber(number){
     clickedNum = number;
     if (state == 'main') {
         const conNum = await convertNumToPokeNum(clickedNum);
-        console.log(conNum);
+        console.log(conNum, 'Divisor');
         if (conNum) {
             // 約数にポケモンが存在するので、エンカウントチャンスのある素因数分解をする
             gameStartTime = currentUnixTime();
@@ -318,8 +340,7 @@ async function sendNum(){
     const number = Number(document.getElementById("pokePrime").value);
     const gameNumElement = document.getElementById('gameNum');
     const factors = await primeFactors(gameNumElement.textContent);
-    // console.log(factors);
-    // console.log(factors.includes(number));
+    // console.log(factors, 'factors');
     if (isPrime(number) && factors.includes(number)) {
         gameNumElement.textContent /= number;
     }
@@ -341,11 +362,11 @@ function gameover(seconds){
         resultTextElement.textContent = 'Clear!';
         if (limitSeconds / 2 < seconds) {
             if (limitSeconds * 5 / 6 < seconds) {
-                encountPoint += 4;
+                encountPoint += (4 + encountPointBase);
             } else if (limitSeconds * 4 / 6 < seconds) {
-                encountPoint += 2;
+                encountPoint += (2 + encountPointBase);
             } else {
-                encountPoint += 1;
+                encountPoint += (1 + encountPointBase);
             }
             pointDisplay('encount');
             if (encountMax <= encountPoint) {
@@ -369,6 +390,7 @@ function gameover(seconds){
 }
 function exitResult(){
     console.log('exitResult');
+    changeState('main');
     if (ballMax <= ballPoint) {
         ballGrade ++;
         if (ballGrade > 3) {
@@ -380,7 +402,6 @@ function exitResult(){
     }
     displayNowBall();
     pointDisplay('ball');
-    changeState('main');
     displayPoke(randamPokeIndex());
 }
 function displayNowBall(){
@@ -408,7 +429,7 @@ const encountMax = 8;
 let encountPoint = 0;
 const ballMax = 8;
 let ballPoint = 0;
-let ballGrade = 0;
+let ballGrade = defaultBall;
 function pointDisplay(bar = 'ball'){
     if (bar == 'ball') {
         for (let i = 0; i < ballMax; i++) {
@@ -431,14 +452,17 @@ function pointDisplay(bar = 'ball'){
 
 let encountPokeNum = 1;
 async function getChance(){
-    console.log('getChance');
     encountPoint = 0;
     pointDisplay('encount');
+    document.getElementById("pokePF_get_encPoke").innerHTML = `
+        <p id="pokeName_get">Name</p>
+        <img id="pokeImg_get" src="" alt="Sprite">
+    `;
     changeState('get');
 
     const conNum = await convertNumToPokeNum(clickedNum);
     encountPokeNum = conNum;
-    // console.log(conNum);
+    // console.log(conNum, 'dividorNum');
     if (conNum) {
         // 約数のポケモンを表示する
         displayPoke(conNum);
@@ -456,15 +480,20 @@ function throwBall(){
         if (getRandomInt(3 - ballGrade) == 0) {
             isGot = true;
             getPoke[encountPokeNum] = (getPoke[encountPokeNum] || 0) + 1;
-            console.log(getPoke);
+            console.log(getPoke, 'GotPokeNum');
+            savePokeData();
             resultTextElement.textContent = 'Get!!!';
             gotPoke.style.display = 'block';
         } else {
             resultTextElement.textContent = 'Get failed';
             gotPoke.style.display = 'none';
         }
+        gotPoke.innerHTML = `
+            <p id="pokeName_result">Name</p>
+            <img id="pokeImg_result" src="" alt="Sprite">
+        `;
         changeState('result');
-        ballGrade = 0;
+        ballGrade = defaultBall;
         displayNowBall();
         if (isGot) {   
             displayPoke(encountPokeNum);
@@ -553,13 +582,15 @@ const addDiv = `
                     <button id="resultGetButton">Get</button>
                 </div>
                 <div id="pokePF_get">
-                    <p id="pokeName_get">Name</p>
-                    <img id="pokeImg_get" src="" alt="Sprite">
+                    <div id="pokePF_get_encPoke">
+                        <p id="pokeName_get">Name</p>
+                        <img id="pokeImg_get" src="" alt="Sprite">
+                    </div>
                     <div id="pokePF_getBall"><img src="" alt="ball"></div>
                     <button id="throwButton">Throw</button>
                 </div>
                 <div id="pokePF_dex">
-                    <dev id="pokeDex"></dev>
+                    <div id="pokeDex"></div>
                     <button id="dexButton">Exit</button>
                 </div>
             </div>
@@ -588,7 +619,7 @@ function markNumbers() {
     document.querySelectorAll('.poke-highlight').forEach(elememt => {
         elememt.addEventListener('click', event => {
             const number = event.target.textContent;
-            console.log(number);
+            console.log(number, 'ClickNum');
             clickNumber(number);
             windowSize('open');
         });
@@ -613,3 +644,4 @@ function markNumbers() {
 markNumbers();
 displayPoke(randamPokeIndex());
 changeState();
+savePokeData();
